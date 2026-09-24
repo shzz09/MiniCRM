@@ -60,7 +60,6 @@ import {
 } from "lucide-react";
 
 import "./App.css";
-
 const API_URL = "https://minicrm-backend-zvnt.onrender.com/api";
 
 const api = axios.create({
