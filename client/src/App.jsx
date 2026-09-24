@@ -61,7 +61,7 @@ import {
 
 import "./App.css";
 
-const API_URL = "http://127.0.0.1:5000/api";
+const API_URL = "https://minicrm-backend-zvnt.onrender.com";
 
 const api = axios.create({
   baseURL: API_URL,
