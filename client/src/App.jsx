@@ -1190,7 +1190,7 @@ function Dashboard({
     <div className="page">
       <PageHeader
         eyebrow="OVERVIEW"
-        title="Good to see you, Admin."
+        title="Good to see you, Admin👋"
         subtitle="Here's what's happening across your lead pipeline."
       />
 
