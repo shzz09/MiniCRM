@@ -61,7 +61,7 @@ import {
 
 import "./App.css";
 
-const API_URL = "https://minicrm-backend-zvnt.onrender.com";
+const API_URL = "https://minicrm-backend-zvnt.onrender.com/api";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -112,6 +112,12 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [error, setError] = useState("");
+  const [registerMode, setRegisterMode] = useState(false);
+  const [registerForm, setRegisterForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
   const [search, setSearch] = useState("");
   const [globalSearch, setGlobalSearch] = useState("");
@@ -236,17 +242,32 @@ function App() {
     try {
       setLoginLoading(true);
       setError("");
+      
+const endpoint = registerMode
+  ? `${API_URL}/users/register`
+  : `${API_URL}/auth/login`;
 
-      const response = await axios.post(`${API_URL}/auth/login`, loginForm);
+      const payload = registerMode
+        ? registerForm
+        : loginForm;
+
+      const response = await axios.post(endpoint, payload);
 
       localStorage.setItem("crm_token", response.data.token);
       setToken(response.data.token);
 
-      showToast("Welcome back to Mini CRM");
+      if (registerMode) {
+        showToast("Account created successfully");
+        setRegisterForm({ name: "", email: "", password: "" });
+      } else {
+        showToast("Welcome back to Mini CRM");
+      }
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          "Login failed. Check your email and password."
+          (registerMode
+            ? "Registration failed. Please try again."
+            : "Login failed. Check your email and password.")
       );
     } finally {
       setLoginLoading(false);
@@ -581,6 +602,10 @@ function App() {
         error={error}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
+        registerMode={registerMode}
+        setRegisterMode={setRegisterMode}
+        registerForm={registerForm}
+        setRegisterForm={setRegisterForm}
       />
     );
   }
@@ -746,6 +771,10 @@ function LoginPage({
   error,
   darkMode,
   setDarkMode,
+  registerMode,
+  setRegisterMode,
+  registerForm,
+  setRegisterForm,
 }) {
   return (
     <div className="login-page">
@@ -772,7 +801,7 @@ function LoginPage({
         </div>
 
         <div className="login-heading">
-          <p className="eyebrow">WELCOME BACK</p>
+          <p className="eyebrow">{registerMode ? "CREATE ACCOUNT" : "WELCOME BACK"}</p>
           <h1>Manage every lead with clarity.</h1>
           <p>
             Track enquiries, organize follow-ups and turn
@@ -781,20 +810,47 @@ function LoginPage({
         </div>
 
         <form onSubmit={login}>
+          {registerMode && (
+            <>
+              <label>Full name</label>
+              <div className="input-wrap">
+                <UserPlus size={18} />
+                <input
+                  type="text"
+                  value={registerForm.name}
+                  onChange={(e) =>
+                    setRegisterForm({
+                      ...registerForm,
+                      name: e.target.value,
+                    })
+                  }
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+            </>
+          )}
+
           <label>Email address</label>
 
           <div className="input-wrap">
             <Mail size={18} />
             <input
               type="email"
-              value={loginForm.email}
+              value={registerMode ? registerForm.email : loginForm.email}
               onChange={(e) =>
-                setLoginForm({
-                  ...loginForm,
-                  email: e.target.value,
-                })
+                registerMode
+                  ? setRegisterForm({
+                      ...registerForm,
+                      email: e.target.value,
+                    })
+                  : setLoginForm({
+                      ...loginForm,
+                      email: e.target.value,
+                    })
               }
-              placeholder="admin@minicrm.com"
+              placeholder="you@example.com"
+              required
             />
           </div>
 
@@ -804,14 +860,21 @@ function LoginPage({
             <LockKeyhole size={18} />
             <input
               type="password"
-              value={loginForm.password}
+              value={registerMode ? registerForm.password : loginForm.password}
               onChange={(e) =>
-                setLoginForm({
-                  ...loginForm,
-                  password: e.target.value,
-                })
+                registerMode
+                  ? setRegisterForm({
+                      ...registerForm,
+                      password: e.target.value,
+                    })
+                  : setLoginForm({
+                      ...loginForm,
+                      password: e.target.value,
+                    })
               }
               placeholder="Enter password"
+              minLength={registerMode ? 6 : undefined}
+              required
             />
           </div>
 
@@ -829,25 +892,40 @@ function LoginPage({
             {loading ? (
               <>
                 <RefreshCw className="spin" size={18} />
-                Signing in...
+                {registerMode ? "Creating account..." : "Signing in..."}
               </>
             ) : (
               <>
-                Sign in
+                {registerMode ? "Create account" : "Sign in"}
                 <ArrowUpRight size={18} />
               </>
             )}
           </button>
         </form>
 
+        <button
+          type="button"
+          className="text-button"
+          style={{ width: "100%", justifyContent: "center", marginTop: "14px" }}
+          onClick={() => {
+            setRegisterMode(!registerMode);
+            setError("");
+          }}
+        >
+          {registerMode
+            ? "Already have an account? Sign in"
+            : "New here? Create an account"}
+        </button>
+
         <div className="login-footer">
           <ShieldCheck size={15} />
-          Secure administrator access
+          {registerMode ? "Secure account creation" : "Secure administrator access"}
         </div>
       </div>
     </div>
   );
 }
+
 
 function Sidebar({
   page,
